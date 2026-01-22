@@ -3,179 +3,141 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>My Reels - Instagram Style</title>
+  <title>MadGirl Reels</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body, html { height:100%; overflow:hidden; background:#000; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; touch-action:manipulation; }
     
     .app { height:100vh; position:relative; }
     
+    .top-bar {
+      position:absolute;
+      top:0; left:0; right:0;
+      padding:15px 20px;
+      display:flex; justify-content:space-between; align-items:center;
+      color:#fff; z-index:10;
+      background:linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+    }
+    .top-bar h1 { font-size:22px; font-weight:700; }
+    
     .reels-feed {
-      height:100%;
-      overflow-y:scroll;
+      height:100%; overflow-y:scroll;
       scroll-snap-type:y mandatory;
-      scroll-behavior:smooth;
       -webkit-overflow-scrolling:touch;
     }
     
     .reel {
-      height:100vh;
-      width:100vw;
+      height:100vh; width:100vw;
       position:relative;
       scroll-snap-align:start;
-      display:flex;
-      align-items:center;
-      justify-content:center;
       background:#000;
     }
     
     video {
-      width:100%;
-      height:100%;
+      width:100%; height:100%;
       object-fit:cover;
     }
     
     .overlay {
-      position:absolute;
-      bottom:0;
-      left:0;
-      right:0;
-      padding:0 15px 80px;
+      position:absolute; bottom:0; left:0; right:0;
+      padding:0 20px 90px 20px;
       color:#fff;
       pointer-events:none;
-      background:linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+      background:linear-gradient(to top, rgba(0,0,0,0.8) 30%, transparent 100%);
     }
     
-    .username {
-      font-weight:600;
-      font-size:18px;
-      margin-bottom:4px;
-    }
-    
-    .caption, .music {
-      font-size:14px;
-      opacity:0.9;
-    }
-    
-    .music { margin-top:8px; }
+    .username { font-weight:700; font-size:18px; margin-bottom:6px; }
+    .caption { font-size:15px; margin-bottom:8px; }
+    .music { font-size:14px; opacity:0.9; }
     
     .side-actions {
-      position:absolute;
-      right:15px;
-      bottom:120px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:30px;
-      color:#fff;
-      pointer-events:auto;
+      position:absolute; right:15px; bottom:150px;
+      display:flex; flex-direction:column; gap:35px;
+      color:#fff; pointer-events:auto;
+      text-align:center;
     }
     
     .action-btn {
-      background:rgba(0,0,0,0.4);
+      background:rgba(255,255,255,0.15);
       border:none;
       color:#fff;
-      font-size:28px;
-      width:50px;
-      height:50px;
+      font-size:32px;
+      width:55px; height:55px;
       border-radius:50%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      backdrop-filter:blur(5px);
-      cursor:pointer;
-      transition:transform 0.2s;
+      display:flex; align-items:center; justify-content:center;
+      backdrop-filter:blur(10px);
+      box-shadow:0 4px 15px rgba(0,0,0,0.4);
+      transition:transform 0.15s;
     }
+    .action-btn:active { transform:scale(0.88); }
     
-    .action-btn:active { transform:scale(0.9); }
+    .like-btn.liked { color:#ff3040; } /* Red heart when liked */
     
     .like-heart {
-      position:absolute;
-      top:50%;
-      left:50%;
+      position:absolute; top:50%; left:50%;
       transform:translate(-50%,-50%) scale(0);
-      font-size:120px;
-      color:#fff;
-      text-shadow:0 0 20px #000;
-      pointer-events:none;
-      opacity:0;
-      transition:all 0.4s;
-      z-index:10;
+      font-size:140px; color:#ff3040;
+      pointer-events:none; opacity:0;
+      transition: all 0.5s ease-out;
+      z-index:20;
     }
-    
     .like-heart.active {
-      transform:translate(-50%,-50%) scale(1.2);
-      opacity:1;
+      transform:translate(-50%,-50%) scale(1);
+      opacity:0.9;
     }
     
-    .top-bar {
-      position:absolute;
-      top:0;
-      left:0;
-      right:0;
-      padding:15px;
-      display:flex;
-      justify-content:space-between;
-      color:#fff;
-      z-index:5;
-      background:linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
-    }
-    
-    .top-bar h1 { font-size:20px; font-weight:700; }
+    .small-count { font-size:12px; margin-top:4px; display:block; }
   </style>
 </head>
 <body>
   <div class="app">
     <div class="top-bar">
       <h1>Reels</h1>
-      <div>Camera</div> <!-- Optional icon -->
+      <div>🎥</div>
     </div>
     
     <div class="reels-feed" id="feed"></div>
     
-    <div class="like-heart" id="heart">❤️</div>
+    <div class="like-heart" id="bigHeart">❤️</div>
   </div>
 
   <script>
     const feed = document.getElementById('feed');
-    const heart = document.getElementById('heart');
+    const bigHeart = document.getElementById('bigHeart');
     
-    // Apne videos yahan daal do (MP4 direct links - Cloudinary, Vercel, etc. se)
+    // Tere videos (same folder mein hone chahiye)
     const videos = [
-      "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4", // Test video 1
-      "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_2mb.mp4", // Test 2
-      // Yahan aur add kar: "https://your-link/reel3.mp4",
-      // jitne chahe utne – 20-30 safe mobile pe agar compressed ho
+      "./mylife.mp4",
+      "./mylife2.mp4",
+      "./mylife3.mp4"
     ];
 
-    let currentVideo = null;
-
-    function createReel(videoSrc, index) {
+    function createReel(src, index) {
       const reel = document.createElement('div');
       reel.className = 'reel';
 
       const video = document.createElement('video');
-      video.src = videoSrc;
+      video.src = src;
       video.loop = true;
       video.muted = true;
       video.playsInline = true;
-      video.preload = 'none'; // Lazy
+      video.preload = 'metadata';
 
       const overlay = document.createElement('div');
       overlay.className = 'overlay';
       overlay.innerHTML = `
-        <div class="username">@ranveer_official</div>
-        <div class="caption">Ye caption bilkul real jaisa 😎 #reels</div>
-        <div class="music">Original audio - Song Name 🎵</div>
+        <div class="username">@madgirl402</div>
+        <div class="caption">My life vibes ✨ #reels #madgirl</div>
+        <div class="music">Original audio - MadGirl Beat 🎶</div>
       `;
 
       const side = document.createElement('div');
       side.className = 'side-actions';
       side.innerHTML = `
-        <button class="action-btn like">❤️<br><small>12k</small></button>
-        <button class="action-btn">💬<br><small>456</small></button>
-        <button class="action-btn">↗️<br><small>Share</small></button>
-        <button class="action-btn mute">🔇</button>
+        <button class="action-btn like-btn">❤️<span class="small-count">1.2k</span></button>
+        <button class="action-btn">💬<span class="small-count">89</span></button>
+        <button class="action-btn">↗️<span class="small-count">Share</span></button>
+        <button class="action-btn mute-btn">🔇</button>
       `;
 
       reel.appendChild(video);
@@ -183,44 +145,50 @@
       reel.appendChild(side);
       feed.appendChild(reel);
 
-      // Play/Pause on visibility
+      // Visibility play/pause
       const observer = new IntersectionObserver(entries => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            video.play().catch(() => {});
-            currentVideo = video;
+            video.play().catch(e => console.log(e));
           } else {
             video.pause();
           }
         });
-      }, { threshold: 0.7 });
+      }, { threshold: 0.75 });
 
       observer.observe(video);
 
-      // Double tap like
+      // Double tap like animation
       let lastTap = 0;
       reel.addEventListener('touchend', e => {
-        const now = Date.now();
-        if (now - lastTap < 300) { // Double tap
-          heart.classList.add('active');
-          setTimeout(() => heart.classList.remove('active'), 600);
-          // Optional: like count badhao
+        const now = new Date().getTime();
+        if (now - lastTap < 300) {
+          bigHeart.classList.add('active');
+          setTimeout(() => bigHeart.classList.remove('active'), 800);
+          
+          // Optional: like button red kar do
+          const likeBtn = side.querySelector('.like-btn');
+          likeBtn.classList.add('liked');
         }
         lastTap = now;
       });
 
       // Mute toggle
-      const muteBtn = side.querySelector('.mute');
+      const muteBtn = side.querySelector('.mute-btn');
       muteBtn.addEventListener('click', () => {
         video.muted = !video.muted;
         muteBtn.textContent = video.muted ? '🔇' : '🔊';
       });
+
+      // Like button single click pe bhi red (optional)
+      const likeBtn = side.querySelector('.like-btn');
+      likeBtn.addEventListener('click', () => {
+        likeBtn.classList.toggle('liked');
+      });
     }
 
-    // Load all videos (ya batch mein for zyada)
+    // Sab reels banao
     videos.forEach((src, i) => createReel(src, i));
-
-    // Optional: Infinite add more button agar last pe pahunche (advanced)
   </script>
 </body>
-  </html>
+</html>
