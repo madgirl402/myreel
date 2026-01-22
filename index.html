@@ -3,177 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Romantic Reels Clone</title>
+    <title>Seamless Instagram Reels Loop</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #000; color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; height: 100vh; overflow: hidden; }
+        body { background: #000; color: white; font-family: -apple-system, sans-serif; height: 100vh; overflow: hidden; }
         
+        /* Magic Rainbow Canvas */
+        #magicCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+
         /* Reels Container */
         .reels-container { 
             height: 100vh; 
-            scroll-snap-type: y mandatory; 
             overflow-y: scroll; 
+            scroll-snap-type: y mandatory; 
             scrollbar-width: none; 
-            scroll-behavior: smooth;
+            position: relative;
         }
         .reels-container::-webkit-scrollbar { display: none; }
         
         .reel { 
             position: relative; 
             height: 100vh; 
+            width: 100%;
             scroll-snap-align: start; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
             background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Sidebar Buttons */
-        .side-bar { 
-            position: absolute; right: 12px; bottom: 100px; 
-            display: flex; flex-direction: column; gap: 22px; 
-            z-index: 10; align-items: center; 
-        }
+        /* Sidebar UI */
+        .side-bar { position: absolute; right: 12px; bottom: 110px; display: flex; flex-direction: column; gap: 20px; z-index: 10; }
         .icon-btn { cursor: pointer; text-align: center; }
-        .icon-btn i { font-size: 28px; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.8)); }
-        .icon-btn p { font-size: 12px; margin-top: 4px; font-weight: 500; }
-        .liked { color: #ff3040 !important; transform: scale(1.1); transition: 0.2s; }
+        .icon-btn i { font-size: 30px; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+        .liked { color: #ff3040 !important; }
 
-        /* Bottom Info & Follow Button */
-        .info-overlay { 
-            position: absolute; bottom: 30px; left: 15px; 
-            z-index: 10; width: 80%; 
-        }
-        .user-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-        .user-row img { width: 35px; height: 35px; border-radius: 50%; border: 1.5px solid #fff; }
-        .username { font-weight: 600; font-size: 14px; }
-        
-        /* Real Instagram Follow Button Style */
-        .follow-btn { 
-            background: transparent; 
-            border: 1px solid #fff; 
-            color: #fff; 
-            padding: 4px 12px; 
-            border-radius: 8px; 
-            font-size: 13px; 
-            font-weight: 600; 
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .following { background: rgba(255,255,255,0.2); border: 1px solid transparent; }
-
-        .caption { font-size: 14px; margin-top: 5px; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
-        .music-tag { display: flex; align-items: center; gap: 6px; font-size: 13px; margin-top: 15px; }
-        .music-tag i { animation: rotateMusic 4s linear infinite; }
-        @keyframes rotateMusic { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        /* Pop Heart Effect */
-        .heart-pop { position: absolute; font-size: 80px; color: #fff; opacity: 0; z-index: 20; pointer-events: none; }
-        .animate-pop { animation: heartEffect 0.8s ease-out; }
-        @keyframes heartEffect { 0% { opacity: 0; transform: scale(0); } 50% { opacity: 0.9; transform: scale(1.2); } 100% { opacity: 0; transform: scale(1.5); } }
+        /* Info Overlay */
+        .info-overlay { position: absolute; bottom: 35px; left: 15px; z-index: 10; width: 80%; }
+        .user-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .username { font-weight: bold; font-size: 14px; }
+        .follow-btn { border: 1px solid #fff; background: none; color: #fff; padding: 4px 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .following { background: rgba(255,255,255,0.2); }
     </style>
 </head>
 <body>
 
-<div class="reels-container" id="reelScroll">
-    <div class="reel" ondblclick="doubleTapLike(this)">
-        <video src="https://assets.mixkit.co/videos/preview/mixkit-young-couple-walking-in-a-park-together-41006-large.mp4" loop autoplay muted></video>
-        <i class="fas fa-heart heart-pop"></i>
+<canvas id="magicCanvas"></canvas>
+
+<div class="reels-container" id="reelBox">
+    <div class="reel" data-id="1">
+        <video src="https://assets.mixkit.co/videos/preview/mixkit-young-couple-walking-in-a-park-together-41006-large.mp4" loop autoplay muted playsinline></video>
         <div class="side-bar">
-            <div class="icon-btn" onclick="toggleHeart(this)"><i class="fas fa-heart"></i><p>958K</p></div>
-            <div class="icon-btn" onclick="alert('कमेंट बॉक्स')"><i class="fas fa-comment"></i><p>1,240</p></div>
-            <div class="icon-btn" onclick="alert('शेयर करें')"><i class="fas fa-paper-plane"></i><p>Share</p></div>
+            <div class="icon-btn" onclick="this.querySelector('i').classList.toggle('liked')"><i class="fas fa-heart"></i><p>1.2M</p></div>
+            <div class="icon-btn"><i class="fas fa-comment"></i><p>420</p></div>
+            <div class="icon-btn"><i class="fas fa-paper-plane"></i></div>
         </div>
         <div class="info-overlay">
             <div class="user-row">
-                <img src="https://ui-avatars.com/api/?name=Made+Girl&background=random" alt="">
                 <span class="username">Made_Girl</span>
-                <button class="follow-btn" onclick="handleFollow(this)">Follow</button>
+                <button class="follow-btn" onclick="this.innerText='Following'; this.classList.add('following')">Follow</button>
             </div>
-            <p class="caption">Waiting for my future husband ❤️💍 #FutureWife</p>
-            <div class="music-tag"><i class="fas fa-music"></i> <span>Aaye Ho Meri Zindagi Mein...</span></div>
+            <p>Waiting for my future husband ❤️</p>
         </div>
     </div>
 
-    <div class="reel" ondblclick="doubleTapLike(this)">
-        <video src="https://assets.mixkit.co/videos/preview/mixkit-couple-walking-holding-hands-in-the-park-41008-large.mp4" loop autoplay muted></video>
-        <i class="fas fa-heart heart-pop"></i>
+    <div class="reel" data-id="2">
+        <video src="https://assets.mixkit.co/videos/preview/mixkit-couple-walking-holding-hands-in-the-park-41008-large.mp4" loop autoplay muted playsinline></video>
         <div class="side-bar">
-            <div class="icon-btn" onclick="toggleHeart(this)"><i class="fas fa-heart"></i><p>1.1M</p></div>
-            <div class="icon-btn" onclick="alert('कमेंट बॉक्स')"><i class="fas fa-comment"></i><p>5,000</p></div>
-            <div class="icon-btn" onclick="alert('शेयर करें')"><i class="fas fa-paper-plane"></i><p>Share</p></div>
+            <div class="icon-btn" onclick="this.querySelector('i').classList.toggle('liked')"><i class="fas fa-heart"></i><p>850K</p></div>
+            <div class="icon-btn"><i class="fas fa-comment"></i><p>900</p></div>
+            <div class="icon-btn"><i class="fas fa-paper-plane"></i></div>
         </div>
         <div class="info-overlay">
             <div class="user-row">
-                <img src="https://ui-avatars.com/api/?name=My+Boys&background=random" alt="">
                 <span class="username">My_Boys</span>
-                <button class="follow-btn" onclick="handleFollow(this)">Follow</button>
+                <button class="follow-btn" onclick="this.innerText='Following'; this.classList.add('following')">Follow</button>
             </div>
-            <p class="caption">Goals with my future wife 👩‍❤️‍👨✨ #HubbyWifey</p>
-            <div class="music-tag"><i class="fas fa-music"></i> <span>Tum Mile - Romantic Lofi</span></div>
+            <p>Future wife goals 💍✨</p>
         </div>
     </div>
 
-    <div class="reel" ondblclick="doubleTapLike(this)">
-        <video src="https://assets.mixkit.co/videos/preview/mixkit-close-up-of-a-happy-couple-in-love-41005-large.mp4" loop autoplay muted></video>
-        <i class="fas fa-heart heart-pop"></i>
+    <div class="reel" data-id="3">
+        <video src="https://assets.mixkit.co/videos/preview/mixkit-close-up-of-a-happy-couple-in-love-41005-large.mp4" loop autoplay muted playsinline></video>
         <div class="side-bar">
-            <div class="icon-btn" onclick="toggleHeart(this)"><i class="fas fa-heart"></i><p>3M</p></div>
-            <div class="icon-btn" onclick="alert('कमेंट बॉक्स')"><i class="fas fa-comment"></i><p>20K</p></div>
-            <div class="icon-btn" onclick="alert('शेयर करें')"><i class="fas fa-paper-plane"></i><p>Share</p></div>
+            <div class="icon-btn" onclick="this.querySelector('i').classList.toggle('liked')"><i class="fas fa-heart"></i><p>2M</p></div>
+            <div class="icon-btn"><i class="fas fa-comment"></i><p>5K</p></div>
+            <div class="icon-btn"><i class="fas fa-paper-plane"></i></div>
         </div>
         <div class="info-overlay">
             <div class="user-row">
-                <img src="https://ui-avatars.com/api/?name=Girls&background=random" alt="">
                 <span class="username">#Girls</span>
-                <button class="follow-btn" onclick="handleFollow(this)">Follow</button>
+                <button class="follow-btn" onclick="this.innerText='Following'; this.classList.add('following')">Follow</button>
             </div>
-            <p class="caption">Soulmate for life ❤️ #FutureHusband</p>
-            <div class="music-tag"><i class="fas fa-music"></i> <span>Pehli Nazar Mein - Instrumental</span></div>
+            <p>Soulmate found ❤️ #HusbandWife</p>
         </div>
     </div>
 </div>
 
 <script>
-    const reelScroll = document.getElementById('reelScroll');
+    const reelBox = document.getElementById('reelBox');
+    
+    // सर्कुलर लूप बनाने के लिए पहली और आखिरी रील को क्लोन करना
+    const firstReel = reelBox.firstElementChild.cloneNode(true);
+    const lastReel = reelBox.lastElementChild.cloneNode(true);
+    
+    reelBox.appendChild(firstReel); // अंत में पहली रील जोड़ी
+    reelBox.insertBefore(lastReel, reelBox.firstElementChild); // शुरुआत में आखिरी रील जोड़ी
 
-    // Infinite Loop: स्क्रॉल होने पर वापस पहली रील पर जाना
-    reelScroll.addEventListener('scroll', () => {
-        if (reelScroll.scrollTop + reelScroll.clientHeight >= reelScroll.scrollHeight - 5) {
-            setTimeout(() => {
-                reelScroll.scrollTo({ top: 0, behavior: 'smooth' });
-            }, 1000);
+    // शुरुआत को असली पहली रील पर सेट करना
+    reelBox.scrollTop = window.innerHeight;
+
+    reelBox.addEventListener('scroll', () => {
+        const top = reelBox.scrollTop;
+        const height = window.innerHeight;
+        const totalHeight = reelBox.scrollHeight;
+
+        // यदि एकदम ऊपर पहुँच जाएँ (Clone पर), तो चुपके से असली रील 3 पर कूदें
+        if (top <= 0) {
+            reelBox.scrollTop = totalHeight - (2 * height);
+        }
+        // यदि एकदम नीचे पहुँच जाएँ (Clone पर), तो चुपके से असली रील 1 पर कूदें
+        if (top >= totalHeight - height) {
+            reelBox.scrollTop = height;
         }
     });
 
-    // Follow Button Logic
-    function handleFollow(btn) {
-        if (btn.innerText === "Follow") {
-            btn.innerText = "Following";
-            btn.classList.add("following");
-        } else {
-            btn.innerText = "Follow";
-            btn.classList.remove("following");
-        }
-    }
+    // --- Rainbow Magic Wave Logic ---
+    const canvas = document.getElementById('magicCanvas');
+    const ctx = canvas.getContext('2d');
+    let points = [];
 
-    // Like Toggle
-    function toggleHeart(btn) {
-        btn.querySelector('i').classList.toggle('liked');
-    }
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize);
+    resize();
 
-    // Double Tap Pop Heart
-    function doubleTapLike(reel) {
-        const heart = reel.querySelector('.heart-pop');
-        const sideHeart = reel.querySelector('.fa-heart');
-        heart.classList.add('animate-pop');
-        sideHeart.classList.add('liked');
-        setTimeout(() => heart.classList.remove('animate-pop'), 800);
+    function handleMove(e) {
+        const x = e.touches ? e.touches[0].clientX : e.clientX;
+        const y = e.touches ? e.touches[0].clientY : e.clientY;
+        for(let i=0; i<3; i++) points.push({x, y, size: 12, color: `hsla(${Math.random()*360}, 100%, 50%, 0.7)`, life: 1});
     }
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('touchmove', handleMove);
+
+    function draw() {
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        points.forEach((p, i) => {
+            p.life -= 0.02; p.size -= 0.1;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+            ctx.fillStyle = p.color; ctx.globalAlpha = p.life; ctx.fill();
+            if(p.life <= 0) points.splice(i, 1);
+        });
+        requestAnimationFrame(draw);
+    }
+    draw();
 </script>
-
 </body>
 </html>
